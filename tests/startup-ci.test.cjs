@@ -140,6 +140,46 @@ test('synthetic package signs actual widget source and verifies signatures', asy
             digest
         );
 });
+test('RSA verification rejects extra nested DigestAlgorithm elements (GHSA-86w9-cpqp-85rv)', () => {
+    const transitiveRequire = require('module').createRequire(require.resolve('tizen'));
+    assert.equal(transitiveRequire.resolve('node-forge'), require.resolve('node-forge'));
+    const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', {
+        modulusLength: 2048,
+        publicExponent: 3
+    });
+    const key = forge.pki.publicKeyFromPem(publicKey.export({ type: 'spki', format: 'pem' }));
+    const digest = crypto.createHash('sha256').update('nested DigestAlgorithm regression').digest();
+    const asn1 = forge.asn1;
+    const element = (type, constructed, value) =>
+        asn1.create(asn1.Class.UNIVERSAL, type, constructed, value);
+    const oid = element(asn1.Type.OID, false, asn1.oidToDer(forge.oids.sha256).getBytes());
+    const nil = element(asn1.Type.NULL, false, '');
+    const garbage = element(asn1.Type.OCTETSTRING, false, 'unconsumed bytes');
+    function signature(children, extraOuter = []) {
+        const info = element(asn1.Type.SEQUENCE, true, [
+            element(asn1.Type.SEQUENCE, true, children),
+            element(asn1.Type.OCTETSTRING, false, digest.toString('binary')),
+            ...extraOuter
+        ]);
+        const der = Buffer.from(asn1.toDer(info).getBytes(), 'binary');
+        const encoded = Buffer.concat([
+            Buffer.from([0, 1]), Buffer.alloc(256 - der.length - 3, 0xff),
+            Buffer.from([0]), der
+        ]);
+        // Construct controlled signed encodings to exercise verification, including
+        // malformed encodings that the vulnerable version incorrectly accepts.
+        return crypto.privateEncrypt({ key: privateKey, padding: crypto.constants.RSA_NO_PADDING }, encoded)
+            .toString('binary');
+    }
+    for (const valid of [[oid], [oid, nil]]) {
+        assert.equal(key.verify(digest.toString('binary'), signature(valid)), true);
+    }
+    for (const invalid of [[oid, nil, garbage], [oid, garbage], [oid, nil, nil]]) {
+        assert.throws(() => key.verify(digest.toString('binary'), signature(invalid)), /DigestInfo/);
+    }
+    assert.throws(() => key.verify(digest.toString('binary'), signature([oid, nil], [garbage])), /DigestInfo/);
+});
+
 test('startup signing does not call forge RSA verification (GHSA-86w9-cpqp-85rv)', (t) => {
     const f = fixture(t);
     const preload = path.join(f.base, 'forbid-forge-verification.cjs');

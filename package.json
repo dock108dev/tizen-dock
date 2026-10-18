@@ -3,12 +3,19 @@
   "version": "0.2.1",
   "private": true,
   "description": "Locked local signing and offline startup verification tools; no hosted service",
-  "engines": { "node": ">=22 <25" },
-  "scripts": { "test": "node --test tests/startup-ci.test.cjs" },
+  "engines": {
+    "node": ">=22 <25"
+  },
+  "scripts": {
+    "test": "node --test tests/startup-ci.test.cjs"
+  },
   "devDependencies": {
     "acorn": "8.19.0",
     "jszip": "3.10.2",
-    "node-forge": "1.4.0",
+    "node-forge": "https://codeload.github.com/digitalbazaar/forge/tar.gz/ceba34402e329f0365134f23fe19898756527d65",
     "tizen": "https://codeload.github.com/reisxd/tizen.js/tar.gz/45b00106149d0c8eff74ead4a979c909dd80efd6"
+  },
+  "overrides": {
+    "node-forge": "$node-forge"
   }
 }
