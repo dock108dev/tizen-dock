@@ -1,0 +1,8 @@
+{
+  "host": "192.0.2.50",
+  "model": "UN65TU7000FXZA",
+  "sdb": "/absolute/path/to/tizen-studio/tools/sdb",
+  "upstream": ".local/upstream",
+  "payloads": ".local/payloads",
+  "callback_host": null
+}

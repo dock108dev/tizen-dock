@@ -1,0 +1,19 @@
+Tizen Dock
+Copyright (c) 2026 dock108dev
+
+This project's original code is licensed under MIT; see LICENSE.
+
+Temporary root access depends on chris-ritsen/samsung-tv-root:
+https://github.com/chris-ritsen/samsung-tv-root
+Pinned source revision: 4ad2c4d3b0d0e0da4b5b7ebe4a787e94596f416b
+Upstream license: Unlicense (public-domain dedication with warranty disclaimer).
+The dependency is downloaded separately into private local storage. The bootstrap
+script adds the documented TU7000 Samsung-launcher runtime detection adaptation
+and compiles the upstream source payloads for netcoreapp3.1.
+
+Assembly patchers depend on Mono.Cecil 0.11.6, restored separately under its own
+license: https://github.com/jbevain/cecil
+
+Samsung SDB, original Samsung assemblies, firmware, extracted framework files,
+and patched Samsung-derived binaries are not distributed by this project.
+Names and trademarks remain the property of their respective owners.

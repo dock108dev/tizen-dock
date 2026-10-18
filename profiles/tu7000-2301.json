@@ -1,0 +1,37 @@
+{
+  "model": "UN65TU7000FXZA",
+  "firmware_reported": "2301",
+  "platform_observed": "Tizen 6.0 / ARMv7",
+  "status": "experimental; latest v3 visual result unconfirmed",
+  "owner_uid": 5001,
+  "assemblies": [
+    {
+      "name": "CompHome",
+      "path": "/usr/apps/com.samsung.tv.coba.home/shared/res/CompHome.dll",
+      "sha256": "bdcdeb7cb9c55a2a84410f9f001a3fe33d769e19b28672150f944bbad725e740"
+    },
+    {
+      "name": "CompTerra",
+      "path": "/opt/usr/apps/com.samsung.tv.ContentsBrowser/shared/res/CompTerra.dll",
+      "sha256": "394e07cb68643fcd8e79460424cfbcc55908bac95f27ab7c92d1ca0fc381d6a2"
+    },
+    {
+      "name": "CompAdvertise",
+      "path": "/opt/usr/apps/com.samsung.tv.coba.adagent/shared/res/CompAdvertise.dll",
+      "sha256": "6ff0ffb207bee24b9c65f0569a8db38b7dda7b5772675d55c3820aa7f42c085b"
+    },
+    {
+      "name": "ImplNUI",
+      "path": "/usr/apps/com.samsung.tv.coba.edenview/shared/res/ImplNUI.dll",
+      "sha256": "0868d04c47528ee81d1b2f5ad6407c87c2cf1381d79eb94a936fb265b2a5b24d"
+    }
+  ],
+  "references": {
+    "Tizen.TV.FLUX": "/usr/apps/csapi-tv-tizenfx/shared/lib/Tizen.TV.FLUX.dll",
+    "Tizen.TV.FLUX.Component": "/usr/apps/csapi-tv-tizenfx/shared/lib/Tizen.TV.FLUX.Component.dll",
+    "Tizen.TV.Service.CoBA.BPI": "/usr/share/dotnet.tizen/tvappapi/Tizen.TV.Service.CoBA.BPI.dll",
+    "Tizen.TV.Service.CoBA.Common": "/usr/share/dotnet.tizen/tvappapi/Tizen.TV.Service.CoBA.Common.dll",
+    "Tizen.NUI": "/usr/share/dotnet.tizen/framework/Tizen.NUI.dll"
+  },
+  "original_paths_note": "These exact source hashes, not the reported version alone, gate overlay builds."
+}

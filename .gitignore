@@ -1,0 +1,19 @@
+# All device state and private setup remain local.
+.local/
+.venv/
+config.json
+__pycache__/
+*.pyc
+**/bin/
+**/obj/
+*.dll
+*.pdb
+*.db
+*.sqlite*
+*.tar*
+*.zip
+*.pem
+*.key
+*.env
+.DS_Store
+*.egg-info/
