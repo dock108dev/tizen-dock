@@ -3,7 +3,9 @@ using Mono.Cecil.Cil;
 using System.Security.Cryptography;
 using System.Text.Json;
 if(args.Length<4||args.Length>5)throw new ArgumentException("input output reference-directory asset-directory [artwork-map.json]");
-if(Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(args[0]))).ToLowerInvariant()!="72a8ed55110fdf5476b6662426a9f65a41b9e925e7e6337afe7c5a90053617e5")throw new Exception("Unqualified renderer input");
+// Exact v3 inputs: historical private staging path, then the canonical public build.
+var inputHash=Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(args[0]))).ToLowerInvariant();
+if(inputHash!="72a8ed55110fdf5476b6662426a9f65a41b9e925e7e6337afe7c5a90053617e5"&&inputHash!="ea08b4189f411fb11a3d47be9d68e5ac036cd2dec22e5c0365a587037dc1240f")throw new Exception("Unqualified renderer input");
 var resolver=new DefaultAssemblyResolver();resolver.AddSearchDirectory(args[2]);resolver.AddSearchDirectory(System.Runtime.InteropServices.RuntimeEnvironment.GetRuntimeDirectory());
 using var a=AssemblyDefinition.ReadAssembly(args[0],new ReaderParameters{AssemblyResolver=resolver});
 using var flux=AssemblyDefinition.ReadAssembly(Path.Combine(args[2],"Tizen.TV.FLUX.Component.dll"));

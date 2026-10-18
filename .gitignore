@@ -34,3 +34,10 @@ device-profile.xml
 htmlcov/
 build/
 dist/
+
+# Private startup observer credentials.
+status-token
+status-key.json
+
+# Reproducible Node build dependencies.
+node_modules/

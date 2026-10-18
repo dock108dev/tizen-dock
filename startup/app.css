@@ -1,0 +1,15 @@
+body {
+    background: #17191f;
+    color: #fff;
+    font: 32px sans-serif;
+    padding: 8vw;
+}
+h1 {
+    font-size: 56px;
+}
+p {
+    color: #c3c9d4;
+}
+small {
+    font-size: 22px;
+}

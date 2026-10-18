@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widget xmlns="http://www.w3.org/ns/widgets" xmlns:tizen="http://tizen.org/ns/widgets" id="https://dock108dev.github.io/tizen-dock" version="0.2.1" viewmodes="maximized">
+<tizen:application id="tizendock0.app" package="tizendock0" required_version="3.0"/>
+<author>Tizen Dock</author><content src="index.html"/><icon src="icon.png"/><name>Tizen Dock Startup</name>
+<access origin="http://127.0.0.1:8098" subdomains="false"/>
+<feature name="http://tizen.org/feature/screen.size.all"/><feature name="http://tizen.org/feature/web.service"/>
+<tizen:privilege name="http://tizen.org/privilege/internet"/>
+<tizen:profile name="tv-samsung"/>
+<tizen:service id="tizendock0.svc" auto-restart="true" on-boot="true"><tizen:content src="service/main.js"/><tizen:name>TizenDockStartup</tizen:name><tizen:description>Reapply the locally saved dock after boot.</tizen:description></tizen:service>
+<tizen:setting screen-orientation="landscape" context-menu="disable" background-support="disable" encryption="disable" install-location="auto" hwkey-event="enable"/>
+</widget>

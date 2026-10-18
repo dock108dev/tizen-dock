@@ -3,7 +3,6 @@
 import argparse
 import asyncio
 import base64
-import hashlib
 import importlib
 import ipaddress
 import json
@@ -15,13 +14,8 @@ import sys
 import time
 import uuid
 
-ROOT = Path(__file__).resolve().parents[2]
-PROFILE = ROOT / "profiles/tu7000-2301.json"
-REMOTE = "/home/owner/share/tizen-dock/menu-overlay"
-
-
-def sha(path):
-    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+from .contracts import PROFILE, ROOT, sha, verify_build
+from .contracts import verify_backup as verify_snapshot
 
 
 def private_dir(path):
@@ -44,8 +38,8 @@ def config(path):
     for key in ("sdb", "upstream", "payloads"):
         p = Path(c[key]).expanduser()
         c[key] = str((ROOT / p).resolve() if not p.is_absolute() else p.resolve())
-    if c["model"] != "UN65TU7000FXZA":
-        raise ValueError("Only the documented TU7000 profile is available")
+    if not isinstance(c.get("model"), str) or not c["model"].strip():
+        raise ValueError("Set model to the TV’s actual model name")
     return c
 
 
@@ -119,12 +113,8 @@ sqlite3 /opt/dbspace/.pkgmgr_parser.db ".backup '{remote}/registry-global.db'"
 sqlite3 /opt/dbspace/user/5001/.pkgmgr_parser.db ".backup '{remote}/registry-user.db'"
 pids=$(ps -eo pid,comm | awk '$2 == "DN_sung.tv.csfs" {{print $1}}')
 [ -z "$pids" ] || kill -STOP $pids
-tar -czf {remote}.tar.gz {" ".join(shlex.quote(f.lstrip("/")) for f in files)} {data.lstrip("/")} {remote.lstrip("/")}/registry-global.db {remote.lstrip("/")}/registry-user.db -C /
+tar -czf {remote}.tar.gz -C / {" ".join(shlex.quote(f.lstrip("/")) for f in files)} {data.lstrip("/")} {remote.lstrip("/")}/registry-global.db {remote.lstrip("/")}/registry-user.db
 """
-    # Put -C before operands for the TV's tar implementation.
-    text = text.replace(
-        "tar -czf " + remote + ".tar.gz ", "tar -czf " + remote + ".tar.gz -C / "
-    ).replace(" -C /\n", "\n")
     text += f"stat -c %s {remote}.tar.gz\nsha256sum {remote}.tar.gz\n"
     meta = root(c, script_command(text)).strip().splitlines()
     size, expected = int(meta[-2]), meta[-1].split()[0]
@@ -155,7 +145,8 @@ tar -czf {remote}.tar.gz {" ".join(shlex.quote(f.lstrip("/")) for f in files)} {
     )
     root(
         c,
-        f"rm -f {remote}.tar.gz {remote}/registry-global.db {remote}/registry-user.db; rmdir {remote}",
+        f"rm -f {remote}.tar.gz {remote}/registry-global.db {remote}/registry-user.db "
+        f"{remote}/registry-global.db-journal {remote}/registry-user.db-journal; rmdir {remote}",
     )
     print("Verified private backup:", dest)
 
@@ -197,12 +188,7 @@ echo APP_STATE_VERIFIED
 
 
 def verify_backup(path):
-    manifest = json.loads((path / "manifest.json").read_text())
-    if manifest.get("profile") != sha(PROFILE):
-        raise ValueError("Backup profile mismatch")
-    archive = path / manifest["archive"]
-    if manifest["archive"] != "snapshot.tar.gz" or sha(archive) != manifest["sha256"]:
-        raise ValueError("Backup checksum mismatch")
+    return verify_snapshot(path, PROFILE)
 
 
 def restore_script():
@@ -216,23 +202,7 @@ def restore_script():
 
 def apply(c, directory, backup_path):
     verify_backup(backup_path)
-    manifest = json.loads((directory / "manifest.json").read_text())
-    if manifest["profile_sha256"] != sha(PROFILE):
-        raise ValueError("Build profile mismatch")
-    required = {"apply.sh"} | {
-        item["name"] + ".dll" for item in json.loads(PROFILE.read_text())["assemblies"]
-    }
-    files = manifest.get("files")
-    if not isinstance(files, dict) or not required.issubset(files):
-        raise ValueError("Build file mismatch: incomplete manifest")
-    for name, expected in files.items():
-        if (
-            Path(name).name != name
-            or (directory / name).is_symlink()
-            or not (directory / name).is_file()
-            or sha(directory / name) != expected
-        ):
-            raise ValueError("Build file mismatch: " + name)
+    manifest = verify_build(directory, PROFILE)
     client = adapter(c)
     for name in manifest["files"]:
         client.push(
@@ -271,6 +241,9 @@ def main():
     p = sp.add_parser("apply")
     p.add_argument("--build", type=Path, required=True)
     p.add_argument("--backup", type=Path, required=True)
+    for name in ("install-startup", "startup-status"):
+        p = sp.add_parser(name)
+        p.add_argument("--package", type=Path, required=True)
     args = ap.parse_args()
     try:
         c = config(args.config)
@@ -281,7 +254,9 @@ def main():
                     raise ValueError("Missing " + key + ": " + c[key])
             print("Local dependency paths exist. Use connect to check the TV.")
         elif args.action == "connect":
-            adapter(c).connect()
+            client = adapter(c)
+            client.connect()
+            client.require_device()
             print("Connected to configured TV")
         elif args.action == "status":
             print(
@@ -302,6 +277,14 @@ def main():
             app_change(c, args.app_id, args.action == "enable-app")
         elif args.action == "apply":
             apply(c, args.build, args.backup)
+        elif args.action == "install-startup":
+            from .startup import install
+
+            install(c, args.package)
+        elif args.action == "startup-status":
+            from .startup import status
+
+            print(json.dumps(status(c, args.package), indent=2))
         elif args.action == "restore-menu":
             print(root(c, script_command(restore_script())))
             print(restart(c))

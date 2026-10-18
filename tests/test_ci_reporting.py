@@ -8,7 +8,10 @@ from reports import coverage_report, gate, summary, tests_report as read_tests
 
 def test_gate_requires_all_required_successes():
     assert gate(
-        {name: {"result": "success"} for name in ("python", "patchers", "security")}
+        {
+            name: {"result": "success"}
+            for name in ("python", "patchers", "startup", "security")
+        }
     )
 
 
@@ -16,7 +19,10 @@ def test_gate_requires_all_required_successes():
     "status", ["failure", "cancelled", "skipped", "timed_out", None]
 )
 def test_gate_fails_closed_for_required_result(status):
-    needs = {name: {"result": "success"} for name in ("python", "patchers", "security")}
+    needs = {
+        name: {"result": "success"}
+        for name in ("python", "patchers", "startup", "security")
+    }
     needs["python"]["result"] = status
     assert not gate(needs)
 
@@ -152,3 +158,104 @@ def test_required_suite_cannot_pass_with_missing_or_skipped_tests(counts):
     from reports import required_tests_executed
 
     assert not required_tests_executed(counts)
+
+
+def test_node_junit_reports_real_pass_failure_and_skip_counts(tmp_path):
+    path = tmp_path / "node.xml"
+    path.write_text(
+        '<testsuites><testcase name="pass" time="1"/><testcase name="fail" time="2"><failure/></testcase><testcase name="skip" time="0"><skipped/></testcase></testsuites>'
+    )
+    report = read_tests(path)
+    assert (
+        report["tests"],
+        report["passed"],
+        report["failures"],
+        report["skipped"],
+    ) == (3, 1, 1, 1)
+    assert report["duration_seconds"] == 3
+
+
+def test_gate_cannot_ignore_missing_or_failed_startup():
+    needs = {name: {"result": "success"} for name in ("python", "patchers", "security")}
+    with pytest.raises(ValueError):
+        gate(needs)
+    needs["startup"] = {"result": "failure"}
+    assert not gate(needs)
+
+
+def test_dependency_counts_remain_visible_for_findings_and_missing_evidence(tmp_path):
+    from reports import dependency_report
+
+    path = tmp_path / "osv.json"
+    vulnerability = {"id": "SYNTHETIC-1", "database_specific": {"severity": "HIGH"}}
+    path.write_text(
+        json.dumps(
+            {
+                "results": [
+                    {"packages": [{"vulnerabilities": [vulnerability, vulnerability]}]}
+                ]
+            }
+        )
+    )
+    result = dependency_report(path)
+    assert result["unique_vulnerabilities"] == 1
+    assert result["severity"] == {"HIGH": 1}
+    path.write_text('{"results":[]}')
+    with pytest.raises(ValueError, match="no package evidence"):
+        dependency_report(path)
+
+
+@pytest.mark.parametrize("failures,errors", [(1, 0), (0, 1)])
+def test_required_report_failure_cannot_be_hidden_by_successful_process(
+    failures, errors
+):
+    from reports import required_tests_executed
+
+    assert not required_tests_executed(
+        {"tests": 2, "skipped": 0, "failures": failures, "errors": errors}
+    )
+
+
+@pytest.mark.parametrize(
+    "document",
+    [
+        '<testsuite tests="1" failures="-1" errors="0" skipped="0" time="1"><testcase/></testsuite>',
+        '<testsuite tests="1" failures="0" errors="0" skipped="0" time="NaN"><testcase/></testsuite>',
+    ],
+)
+def test_junit_rejects_invalid_measurements(tmp_path, document):
+    path = tmp_path / "report.xml"
+    path.write_text(document)
+    with pytest.raises(ValueError):
+        read_tests(path)
+
+
+@pytest.mark.parametrize("mode,expected", [("pass", 0), ("skipped", 1), ("missing", 1)])
+def test_actual_aggregate_emits_summary_and_preserves_outcome(tmp_path, mode, expected):
+    import os
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    needs = {
+        name: {"result": "success"}
+        for name in ("python", "patchers", "startup", "security")
+    }
+    if mode == "skipped":
+        needs["startup"]["result"] = "skipped"
+    if mode == "missing":
+        del needs["startup"]
+    env = os.environ.copy()
+    env.pop("GITHUB_STEP_SUMMARY", None)
+    env["NEEDS_JSON"] = json.dumps(needs)
+    (tmp_path / ".ci-results").mkdir()
+    result = subprocess.run(
+        [sys.executable, str(Path(__file__).resolve().parents[1] / "ci/reports.py")],
+        cwd=tmp_path,
+        env=env,
+        capture_output=True,
+        timeout=10,
+    )
+    assert result.returncode == expected
+    text = (tmp_path / ".ci-results/gate-summary.md").read_text()
+    assert ("PASS" if expected == 0 else "FAIL") in text

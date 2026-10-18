@@ -50,6 +50,21 @@ def smoke(output):
             "global.json",
             "patchers/dock-v4/Patcher.csproj",
             "ci/requirements.txt",
+            "src/tizen_dock/contracts.py",
+            "src/tizen_dock/startup.py",
+            "scripts/prepare-startup.py",
+            "scripts/sign-startup.cjs",
+            "startup/config.xml",
+            "startup/app.js",
+            "startup/app.css",
+            ".prettierrc.json",
+            "ci/suites/startup.py",
+            "startup/service/main.js",
+            "startup/service/platform.js",
+            "startup/VETRO-LICENSE",
+            "startup/ROOT-RESEARCH-LICENSE",
+            "package-lock.json",
+            "tests/startup-ci.test.cjs",
         ):
             if not (export / name).is_file():
                 raise ValueError("Missing source distribution input: " + name)
@@ -91,12 +106,13 @@ def smoke(output):
         )
         output.with_name("inventory.json").write_text(inventory.stdout)
         run([str(root / "env/bin/tizen-dock"), "--help"], cwd=root)
+        run([str(python), str(export / "ci/run.py"), "--help"], cwd=root)
         paths = {name: str(root / name) for name in ("sdb", "upstream", "payloads")}
         for name in paths.values():
             Path(name).mkdir()
         config = root / "synthetic.json"
         config.write_text(
-            json.dumps({"host": "192.0.2.1", "model": "UN65TU7000FXZA", **paths})
+            json.dumps({"host": "192.0.2.1", "model": "Synthetic-CI-TV", **paths})
         )
         run(
             [str(python), "-m", "tizen_dock", "--config", str(config), "doctor"],

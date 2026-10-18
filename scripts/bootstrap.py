@@ -1,4 +1,4 @@
-"""Download pinned public root research source and build local TU7000 payloads."""
+"""Download pinned public root research source and build local TV payloads."""
 
 from pathlib import Path
 import io
@@ -59,9 +59,7 @@ for name in ("SamsungTvArchiveRoot", "SamsungTvRootAgent"):
     # Relative source paths keep local host names out of generated project files.
     project = folder / (name + ".csproj")
     project.write_text(
-        f"""<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>netcoreapp3.1</TargetFramework><OutputType>Exe</OutputType><AssemblyName>{name}</AssemblyName><UseAppHost>false</UseAppHost><EnableDefaultCompileItems>false</EnableDefaultCompileItems></PropertyGroup><ItemGroup><Compile Include="../../upstream/payloads/common/{name}.cs" /></ItemGroup></Project>""".replace(
-            "../../upstream/", "../../upstream/"
-        )
+        f"""<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>netcoreapp3.1</TargetFramework><OutputType>Exe</OutputType><AssemblyName>{name}</AssemblyName><UseAppHost>false</UseAppHost><EnableDefaultCompileItems>false</EnableDefaultCompileItems></PropertyGroup><ItemGroup><Compile Include="../../upstream/payloads/common/{name}.cs" /></ItemGroup></Project>"""
     )
     # payload-projects/NAME is two levels below .local.
     subprocess.run(

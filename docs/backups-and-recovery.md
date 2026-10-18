@@ -11,7 +11,7 @@ The Home process is briefly paused while its cache files are archived, then resu
 
 This is an application-level snapshot, **not a full firmware image or guaranteed unbrick image**. It captures the currently mounted view. Take it before overlays: a snapshot taken while a customized assembly is mounted contains that customized view and cannot satisfy the pristine-source build checks. Keep an additional offline copy of the verified archive and manifest.
 
-`extract-originals.py` selectively extracts the private build inputs. For Home-cache work, extract only `opt/usr/home/owner/apps_rw/com.samsung.tv.csfs/data` into a private directory, preserving a separate untouched copy. For example, from the project root:
+`extract-originals.py` uses the same profile, archive-name and checksum validation as deployment, then selectively extracts the private build inputs. For Home-cache work, extract only `opt/usr/home/owner/apps_rw/com.samsung.tv.csfs/data` into a private directory, preserving a separate untouched copy. For example, from the project root:
 
 ```sh
 mkdir -p .local/extracted

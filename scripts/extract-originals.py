@@ -1,23 +1,21 @@
 """Extract only build inputs from a checksum-verified private TV snapshot."""
 
 import argparse
-import hashlib
 import json
 from pathlib import Path
 import tarfile
+import sys
 
-ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+
+from tizen_dock.contracts import PROFILE, verify_backup
+
 ap = argparse.ArgumentParser(description=__doc__)
 ap.add_argument("--backup", type=Path, required=True)
 ap.add_argument("--output", type=Path, required=True)
 a = ap.parse_args()
-m = json.loads((a.backup / "manifest.json").read_text())
-if m["archive"] != "snapshot.tar.gz":
-    raise SystemExit("Unexpected archive name")
-archive = a.backup / m["archive"]
-if hashlib.sha256(archive.read_bytes()).hexdigest() != m["sha256"]:
-    raise SystemExit("Archive checksum mismatch")
-profile = json.loads((ROOT / "profiles/tu7000-2301.json").read_text())
+archive = verify_backup(a.backup)
+profile = json.loads(PROFILE.read_text())
 wanted = {x["path"].lstrip("/"): x["name"] + ".dll" for x in profile["assemblies"]}
 wanted.update(
     {path.lstrip("/"): name + ".dll" for name, path in profile["references"].items()}

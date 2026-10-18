@@ -182,6 +182,7 @@ def test_extraction_only_emits_allowlisted_regular_inputs(tmp_path):
             {
                 "archive": archive.name,
                 "sha256": hashlib.sha256(archive.read_bytes()).hexdigest(),
+                "profile": cli.sha(cli.PROFILE),
             }
         )
     )
@@ -256,6 +257,10 @@ def test_backup_uses_bounded_chunks_and_records_verified_integrity(tmp_path):
     assert manifest["bytes"] == len(data)
     assert root.call_count == len(chunks) + 2
     assert root.call_args.args[1].startswith("rm -f ")
+    cleanup = root.call_args.args[1]
+    assert "registry-global.db-journal" in cleanup
+    assert "registry-user.db-journal" in cleanup
+    assert "*" not in cleanup  # Only this backup's named scratch files are removed.
     assert (directory / "snapshot.tar.gz").stat().st_mode & 0o777 == 0o600
 
 
@@ -289,4 +294,57 @@ def test_changed_complete_build_hash_never_contacts_tv(tmp_path):
         pytest.raises(ValueError, match="Build file mismatch"),
     ):
         cli.apply({}, build, tmp_path)
+    adapter.assert_not_called()
+
+
+@pytest.mark.parametrize("model", ["UN65TU7000FXZA", "UN65AU8000FXZA", "Another-TV"])
+def test_model_name_is_metadata_not_compatibility_policy(tmp_path, model):
+    path = tmp_path / "config.json"
+    path.write_text(
+        json.dumps(
+            {
+                "host": "192.0.2.50",
+                "model": model,
+                "sdb": "tools/sdb",
+                "upstream": "upstream",
+                "payloads": "payloads",
+            }
+        )
+    )
+    assert cli.config(path)["model"] == model
+
+
+def test_connect_does_not_report_success_without_registered_device(capsys):
+    client = Mock()
+    client.require_device.side_effect = RuntimeError("No registered device")
+    with (
+        patch.object(cli, "config", return_value={}),
+        patch.object(cli, "adapter", return_value=client),
+        patch.object(sys, "argv", ["tizen-dock", "connect"]),
+        pytest.raises(SystemExit),
+    ):
+        cli.main()
+    client.connect.assert_called_once()
+    client.require_device.assert_called_once()
+    assert "Connected to configured TV" not in capsys.readouterr().out
+
+
+def test_extraction_and_apply_reject_same_mismatched_backup(tmp_path):
+    snapshot(tmp_path)
+    path = tmp_path / "manifest.json"
+    value = json.loads(path.read_text())
+    value["profile"] = "0" * 64
+    path.write_text(json.dumps(value))
+    output = tmp_path / "out"
+    result = execute(
+        "scripts/extract-originals.py", "--backup", tmp_path, "--output", output
+    )
+    assert result.returncode != 0
+    assert "Backup profile mismatch" in result.stderr
+    assert not output.exists()
+    with (
+        patch.object(cli, "adapter") as adapter,
+        pytest.raises(ValueError, match="profile mismatch"),
+    ):
+        cli.apply({}, tmp_path / "missing-build", tmp_path)
     adapter.assert_not_called()

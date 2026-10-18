@@ -1,7 +1,9 @@
 """Small strict report readers and native Actions summaries. No report execution."""
 
 import html
+from collections import Counter
 import json
+import math
 import os
 from pathlib import Path
 import xml.etree.ElementTree as ET
@@ -9,12 +11,31 @@ import xml.etree.ElementTree as ET
 
 def tests_report(path):
     root = ET.parse(path).getroot()
+    if root.tag not in ("testsuite", "testsuites"):
+        raise ValueError("Unsupported JUnit root")
     suites = [root] if root.tag == "testsuite" else list(root.findall("testsuite"))
-    counts = {
-        key: sum(int(s.attrib[key]) for s in suites)
-        for key in ("tests", "failures", "errors", "skipped")
-    }
     cases = list(root.iter("testcase"))
+    if root.tag == "testsuites" and not suites:
+        # Node's built-in JUnit reporter emits direct testcase children.
+        counts = {
+            "tests": len(cases),
+            "failures": sum(c.find("failure") is not None for c in cases),
+            "errors": sum(c.find("error") is not None for c in cases),
+            "skipped": sum(c.find("skipped") is not None for c in cases),
+        }
+        duration = sum(float(c.attrib["time"]) for c in cases)
+    else:
+        counts = {
+            key: sum(int(s.attrib[key]) for s in suites)
+            for key in ("tests", "failures", "errors", "skipped")
+        }
+        duration = sum(float(s.attrib["time"]) for s in suites)
+    if (
+        any(value < 0 for value in counts.values())
+        or not math.isfinite(duration)
+        or duration < 0
+    ):
+        raise ValueError("Invalid JUnit counts or duration")
     if counts["tests"] <= 0 or len(cases) != counts["tests"]:
         raise ValueError("Missing tests or inconsistent JUnit counts")
     if sum(counts[k] for k in ("failures", "errors", "skipped")) > counts["tests"]:
@@ -22,7 +43,7 @@ def tests_report(path):
     counts["passed"] = (
         counts["tests"] - counts["failures"] - counts["errors"] - counts["skipped"]
     )
-    counts["duration_seconds"] = sum(float(s.attrib["time"]) for s in suites)
+    counts["duration_seconds"] = duration
     counts["failing_tests"] = [
         f"{c.get('classname')}.{c.get('name')}"
         for c in cases
@@ -33,7 +54,13 @@ def tests_report(path):
 
 def required_tests_executed(report):
     # This repository has no approved skips in its offline merge suite.
-    return bool(report) and report["tests"] > 0 and report["skipped"] == 0
+    return (
+        bool(report)
+        and report["tests"] > 0
+        and report["skipped"] == 0
+        and report.get("failures") == 0
+        and report.get("errors") == 0
+    )
 
 
 def coverage_report(path):
@@ -54,7 +81,27 @@ def coverage_report(path):
     }
 
 
-def gate(needs, expected=("python", "patchers", "security")):
+def dependency_report(path):
+    report = json.loads(Path(path).read_text())
+    packages = [p for row in report["results"] for p in row["packages"]]
+    if not packages:
+        raise ValueError("Dependency scanner produced no package evidence")
+    findings = {v["id"]: v for p in packages for v in p.get("vulnerabilities", [])}
+    return {
+        "unique_vulnerabilities": len(findings),
+        "package_observations": len(packages),
+        "ids": sorted(findings),
+        "severity": dict(
+            Counter(
+                v.get("database_specific", {}).get("severity") or "UNKNOWN"
+                for v in findings.values()
+            )
+        ),
+        "database": "OSV query at recorded_utc; database snapshot age unavailable",
+    }
+
+
+def gate(needs, expected=("python", "patchers", "startup", "security")):
     if set(needs) != set(expected):
         raise ValueError("Missing or unexpected required jobs")
     return all(needs[name]["result"] == "success" for name in expected)
@@ -125,11 +172,18 @@ def summary(record, path):
 
 
 if __name__ == "__main__":
-    needs = json.loads(os.environ["NEEDS_JSON"])
-    result = gate(needs)
+    needs = None
+    reason = None
+    try:
+        needs = json.loads(os.environ["NEEDS_JSON"])
+        result = gate(needs)
+    except (ValueError, KeyError, TypeError) as error:
+        result = False
+        reason = str(error)
     record = {
         "result": "PASS" if result else "FAIL",
         "required_jobs": needs,
+        "reason": reason,
         "tested_sha": os.environ.get("GITHUB_SHA"),
         "next_action": "Review job summaries and reports; missing, skipped or cancelled required jobs block merging.",
     }

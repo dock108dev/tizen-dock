@@ -1,23 +1,60 @@
 """Build source-only overlays from an owner's exact, private original assemblies."""
 
 import argparse
-import hashlib
 import json
 from pathlib import Path
 import shlex
+import shutil
 import subprocess
+import struct
 import sys
 
-ROOT = Path(__file__).resolve().parents[1]
-REMOTE = "/home/owner/share/tizen-dock/menu-overlay"
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+
+from tizen_dock.contracts import PROFILE, REMOTE, ROOT, sha, validate_artifact_name
 
 
-def sha(path):
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+def load_artwork(artwork_map):
+    if artwork_map is None:
+        return {}
+    if artwork_map.is_symlink() or artwork_map.stat().st_size > 65536:
+        raise ValueError("Invalid artwork map file")
+    mapping = json.loads(artwork_map.read_text())
+    if not isinstance(mapping, dict) or not 1 <= len(mapping) <= 64:
+        raise ValueError("Artwork map must contain 1–64 exact titles and PNG filenames")
+    for title, name in mapping.items():
+        validate_artifact_name(name)
+        if (
+            not isinstance(title, str)
+            or not title.strip()
+            or len(title) > 256
+            or not name.endswith(".png")
+        ):
+            raise ValueError("Invalid artwork map entry")
+        if name.startswith(("compact-dock-", "focus-ring-")):
+            raise ValueError("Artwork conflicts with generated assets")
+        source = artwork_map.parent / name
+        if (
+            source.is_symlink()
+            or not source.is_file()
+            or source.stat().st_size > 8 * 1024 * 1024
+        ):
+            raise ValueError("Invalid artwork file: " + name)
+        with source.open("rb") as stream:
+            header = stream.read(24)
+        if (
+            len(header) != 24
+            or header[:8] != b"\x89PNG\r\n\x1a\n"
+            or header[12:16] != b"IHDR"
+            or struct.unpack(">II", header[16:24]) != (512, 512)
+        ):
+            raise ValueError("Artwork must be a 512 × 512 PNG: " + name)
+    return mapping
 
 
-def build(originals, output):
-    profile_path = ROOT / "profiles/tu7000-2301.json"
+def build(originals, output, artwork_map=None):
+    mapping = load_artwork(artwork_map)
+    profile_path = PROFILE
     profile = json.loads(profile_path.read_text())
     for item in profile["assemblies"]:
         if sha(originals / (item["name"] + ".dll")) != item["sha256"]:
@@ -73,6 +110,21 @@ def build(originals, output):
     subprocess.run(
         [sys.executable, str(ROOT / "scripts/draw-assets.py"), str(output)], check=True
     )
+    v3 = output / "ImplNUI.v3.dll"
+    (output / "ImplNUI.dll").rename(v3)
+    subprocess.run(
+        [sys.executable, str(ROOT / "patchers/dock-v4/make-assets.py"), str(output)],
+        check=True,
+    )
+    extra = []
+    if mapping:
+        for name in set(mapping.values()):
+            shutil.copyfile(artwork_map.parent / name, output / name)
+        frozen_map = output / "artwork-map.json"
+        frozen_map.write_text(json.dumps(mapping))
+        extra = [frozen_map]
+    run("dock-v4", v3, output / "ImplNUI.dll", originals, REMOTE, *extra)
+    v3.unlink()
     for name in ("CompTerra.empty.dll", "ImplNUI.v1.dll", "ImplNUI.v2.dll"):
         (output / name).unlink()
     # The unmodified source DLL remains on the system partition. Every bind is
@@ -114,7 +166,8 @@ def build(originals, output):
         "profile_sha256": sha(profile_path),
         "files": {f.name: sha(f) for f in files},
         "experimental": True,
-        "visual_acceptance": "unconfirmed for v3",
+        "renderer_version": "v4",
+        "visual_acceptance": "pending on target TV",
     }
     (output / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
     print("Private build:", output, "Review apply.sh before using apply.")
@@ -124,5 +177,14 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--originals", type=Path, required=True)
     ap.add_argument("--output", type=Path, required=True)
+    ap.add_argument(
+        "--artwork-map",
+        type=Path,
+        help="Private exact-title map; 512px PNGs alongside it",
+    )
     args = ap.parse_args()
-    build(args.originals.resolve(), args.output.resolve())
+    build(
+        args.originals.resolve(),
+        args.output.resolve(),
+        args.artwork_map.resolve() if args.artwork_map else None,
+    )

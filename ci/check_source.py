@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def public_files():
-    # Includes current untracked fixes, excludes ignored owner files and CI outputs.
+    # Include untracked source; exclude ignored private files and generated output.
     result = subprocess.run(
         ["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard"],
         cwd=ROOT,
@@ -26,8 +26,20 @@ def check():
         if (
             name.parts[0] in (".local", ".venv")
             or str(name) == "config.json"
+            or name.name in ("status-token", "status-key.json", "device-profile.xml")
             or name.suffix
-            in (".dll", ".pdb", ".db", ".pem", ".key", ".p12", ".wgt", ".tpk")
+            in (
+                ".dll",
+                ".pdb",
+                ".db",
+                ".pem",
+                ".key",
+                ".p12",
+                ".pfx",
+                ".pw",
+                ".wgt",
+                ".tpk",
+            )
         ):
             raise ValueError(f"Private/generated input in public source: {name}")
         if name.suffix == ".json":

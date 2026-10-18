@@ -12,7 +12,7 @@ python scripts/build-overlays.py --originals .local/originals --output .local/bu
 
 Replace `YOUR_BACKUP` with the printed backup directory. Extraction selects only the documented build inputs and verifies the archive checksum. Do not publish `.local/originals` or the outputs: they contain Samsung-derived assemblies.
 
-Review `.local/build/dock/apply.sh` and `manifest.json`. The build is incremental: Home/feed/ad patches, the initial dock transformation, and two successive renderer revisions. Only the final renderer is deployed. The current design uses a 25-unit-high panel, a row width clamped to `min(210, window width - 24)`, a background 12 units wider, BottomCenter anchoring, and 17-unit normal app shortcuts. Focus enlargement is 1.18 for the app shortcut renderer. These are Tizen layout units, not screen pixels.
+Review `.local/build/dock/apply.sh` and `manifest.json`. The build is incremental: Home/feed/ad patches, the ordered v1–v4 renderer transformations. Only the final renderer is deployed. The current design uses a 25-unit-high panel, a row width clamped to `min(210, window width - 24)`, a background 12 units wider, BottomCenter anchoring, and 17-unit normal app shortcuts. V4 focus enlargement is 1.08 for the app shortcut renderer. These are Tizen layout units, not screen pixels.
 
 ```sh
 tizen-dock apply --build .local/build/dock --backup .local/backups/YOUR_BACKUP
@@ -72,26 +72,22 @@ tizen-dock restore-menu
 
 This attempts to unmount the four component overlays, then restarts Home. It does not restore app disable flags or Home cache files. Verify the SDK-visible hashes against the profile afterward. A full power cycle clears the temporary mounts, but an installed startup helper may reapply them. Uninstall that helper first if you want automatic restoration to stop; see [restart and persistence](restart-and-persistence.md). See [recovery](backups-and-recovery.md) for persistent changes and retry staging cleanup.
 
-## Optional artwork and focus styling
+## Current v4 focus and artwork
 
-The separate `patchers/dock-v4` source isolates app backplates, replaces the native square focus background with a rounded outline, and reduces focus zoom to 1.08. With matching 512-pixel artwork and mask, the owner confirmed rounded focus and full logos fitting inside the tiles. App launch, playback, and every remote path remain incompletely tested.
+The normal build runs the required v1–v3 transformations followed by v4. These
+are build stages, not separate installation choices. V4 isolates app backplates,
+uses a rounded focus outline and reduces focus zoom to 1.08. The patcher accepts
+only the exact historical or canonical v3 intermediate hashes; unknown inputs fail.
 
-This patcher accepts only the exact device-derived v3 renderer hash checked in its source. The default build embeds different resource paths and is not automatically accepted by this additional gate. Do not bypass it. There is no integrated v4 apply command or public startup-helper installer.
+To include private 512 × 512 PNG artwork, put the exact-title JSON map alongside
+its referenced PNG files and add `--artwork-map /absolute/private/artwork-map.json`
+to `scripts/build-overlays.py`. Map values must be plain PNG filenames. Unmapped
+app titles retain existing artwork. The generated mask and focus outline come
+from the v4 asset generator and are included in the deployment manifest.
 
-For development with an already-qualified v3 input:
+Without a map, existing artwork and its matching mask are retained; v4 focus
+styling still applies. Do not mix masks and artwork of different dimensions.
 
-```sh
-python patchers/dock-v4/make-assets.py .local/artwork
-dotnet run --project patchers/dock-v4/Patcher.csproj -- \
-  .local/qualified/ImplNUI.v3.dll .local/artwork/ImplNUI.dll \
-  .local/originals /home/owner/share/tizen-dock/menu-overlay \
-  examples/artwork-map.json
-```
-
-The arguments are input renderer, output renderer, private reference directory, absolute TV asset directory, and optional artwork map. The generated directory is not a normal `tizen-dock apply` build: it has no deployment manifest. Loading it requires separately reviewed staging, hash checks, bind mounts, and rollback instructions.
-
-The asset generator creates only the original rounded outline and mask. Supply your own square 512 × 512 PNG app cards named by [the example map](../examples/artwork-map.json). Map keys must exactly match displayed app titles; unmapped titles keep their existing artwork. The patcher resolves values as filenames under the TV asset directory. Stage all referenced files alongside the renderer before loading it.
-
-Use the 512-pixel mask with 512-pixel replacement artwork. A smaller mask cropped the source before display scaling, causing only the middle letters of logos to show. Keep masks, artwork, and the patched renderer together as one compatible set. The rounded focus outline is a separate image from the icon mask.
-
-The artwork map is optional. Without it, existing app artwork and its existing mask are retained; only focus styling changes. App logos and Samsung-derived binaries are not shipped in this repository. Some private device artwork used vector marks from [Simple Icons](https://github.com/simple-icons/simple-icons) and locally rendered text.
+Prepare the startup helper from this same build and a verified pristine backup,
+then install its device-authorized signed package as described in
+[restart and persistence](restart-and-persistence.md).
