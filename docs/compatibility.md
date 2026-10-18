@@ -1,41 +1,21 @@
-# Compatibility and current status
+# Compatibility and limitations
 
-## Observed hardware
+## Supported input set
 
-| Field | Development device |
-| --- | --- |
-| Model | Samsung UN65TU7000FXZA, 65-inch TU7000 family |
-| Reported software version | 2301, supplied from the owner's TV information |
-| Observed platform | Tizen 6.0, ARMv7 |
-| Observed managed runtime | Microsoft.NETCore.App 3.1.3 through Samsung's launcher |
-| Host | macOS |
-| TV user for app controls | 5001 |
+Development has used a Samsung **UN65TU7000FXZA**, 65-inch TU7000 family, with on-screen software version reported as **2301**. Tizen 6.0, ARMv7, TV user 5001, and Microsoft.NETCore.App 3.1.3 through Samsung's launcher were observed. The host was macOS.
 
-The version is a reported value, not a universal firmware compatibility claim. Other TU7000 variants, screen sizes, regions, builds, and newer updates are unqualified. Root-route compatibility is broader upstream, but that does not qualify this project's UI patchers.
+This is not a compatibility claim for every TV labeled TU7000 or firmware 2301. Other regions, sizes, builds, updates, and hosts need separate qualification. Upstream root compatibility does not imply renderer compatibility.
 
-## Exact source gate
+`profiles/tu7000-2301.json` defines the original paths and SHA-256 values for CompHome, CompTerra, CompAdvertise, and ImplNUI. The build checks all four before patching. Framework references must come privately from the same TV. A mismatch stops the build; do not edit the hashes merely to bypass it.
 
-`profiles/tu7000-2301.json` lists paths and SHA-256 values for CompHome, CompTerra, CompAdvertise, and ImplNUI. The build checks all four before changing any assembly. Reference libraries are collected privately from the same TV; they are not distributed. A mismatch stops the build. Do not change the allowlisted hashes just to bypass a mismatch.
+## Current behavior
 
-## Evidence and limits
+Temporary root, overlay loading, selected app disable/enable, and shortcut removal have worked on the development TV. Standard SDB uninstall of protected apps was rejected; package operations here disable rather than uninstall. The latest optional artwork customization has owner-confirmed rounded focus and full logos fitting inside the tiles. The default public build remains v3; the v4 source patcher is separate.
 
-| Capability | Result |
-| --- | --- |
-| SDB connection and initial SDK command route | Observed working |
-| Temporary archive-launcher root | Observed UID/GID 0 and full effective capability mask |
-| Standard SDB removal of selected preinstalled apps | Rejected by the TV; no successful uninstall claim |
-| Native app disable/enable | Observed; one Hulu enable/disable round trip verified |
-| Nine selected unwanted apps and related dedicated services | Disable flags verified; shared infrastructure preserved |
-| Home shortcut removal | Owner confirmed selected shortcuts were gone |
-| Upper cards / recommendation cleanup | Owner reported improvement; early revision left blank On Now space |
-| Renderer v1 | Loaded; owner rejected small, square icons and overflow |
-| Renderer v2 | Loaded; owner rejected square icons, excessive panel height, and poor fit |
-| Renderer v3 | Loaded with matching device hash; shorter centered container and app-specific masking implemented; visual/navigation acceptance pending |
-| Streaming behind Home | Owner photos show video behind the dock; continuous playback and audio across apps remain unqualified |
-| Movie Hub / TV Plus playback prevention | Unresolved; channel-player process remained after TV Plus package disabling |
-| Performance improvement | No benchmark or reliable latency claim established |
-| Survives full power loss | Renderer overlays do not; native app/cache changes may persist |
+Video has been visible behind the dock, but continuous video/audio across every app and complete remote navigation have not been checked. Disabling TV Plus did not prove the separate native channel player had stopped. Movie Hub playback prevention remains unresolved. No reliable performance benchmark exists.
 
-These are separate evidence levels: a successful build, a live loaded assembly, an owner photo, and successful navigation are not interchangeable. No completed iOS or tvOS replacement is claimed.
+The public wrapper's complete backup/apply/restore workflow has not been qualified end to end on additional hardware. Local tests and source builds do not establish that outcome.
 
-The public tools were reorganized from the device session. Local source builds and guard tests are recorded in [validation](validation.md). The reorganized end-to-end device workflow has not been rerun against the TV as part of publication.
+## Restart limits
+
+Default overlays are volatile. A separately installed experimental helper has restored them on a later boot, approximately 10 seconds after its service started. An unplug test was unsuccessful, repeat cold-boot testing was deferred, and Developer Mode host-IP behavior remains incompletely tested. See [restart and persistence](restart-and-persistence.md) before relying on automatic restoration.

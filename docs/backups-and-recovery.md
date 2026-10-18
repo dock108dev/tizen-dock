@@ -34,7 +34,7 @@ An incomplete record is evidence of an interrupted operation, not proof that no 
 
 ## Restore menu overlays
 
-`restore-menu` attempts lazy unmount of each managed and native-image path and relaunches Home through the SDK context. It reports launch output, but does not independently establish that all unmounts succeeded. Check the four SDK-visible source hashes against `profiles/tu7000-2301.json`. A full unplug/reconnect clears volatile mounts if control is lost.
+`restore-menu` attempts lazy unmount of each managed and native-image path and relaunches Home through the SDK context. It reports launch output, but does not independently establish that all unmounts succeeded. Check the four SDK-visible source hashes against `profiles/tu7000-2301.json`. A full unplug/reconnect clears volatile mounts if control is lost. An installed startup helper may reapply them; uninstall Tizen Dock Startup first to stop that behavior. See [restart and persistence](restart-and-persistence.md).
 
 The TV staging directory `/home/owner/share/tizen-dock/menu-overlay` remains after restore. Once the original hashes are visible and no mounts use that staging directory, archive or remove this project's directory before a fresh application attempt. The installer intentionally refuses an existing staging directory. Never overwrite a file still mapped by Home; stage a new revision and restart it instead.
 
@@ -44,4 +44,4 @@ The TV staging directory `/home/owner/share/tizen-dock/menu-overlay` remains aft
 - **Home shortcuts:** restore the original `.appLayerCache` and `.listofremovedbyuser` copies you changed. If earlier manual changes touched `.homeCache` or `.ContentsBrowserCache`, restore those exact backed-up files too. Pause Home, preserve current copies, copy original bytes while preserving the TV files' ownership/security metadata, resume Home, then use `restart-home`.
 - **Registry databases:** retain the consistent snapshots as evidence/recovery inputs. Do not replace live registry databases wholesale while package services are running. Native package controls are the supported per-app restore path here; complete database recovery has not been qualified.
 
-A power cycle clears temporary overlays but does not necessarily undo disabled apps, removed shortcuts, account changes, or anything else a custom root command changed. Firmware updates may replace renderer inputs or reset app state; remove trials first and requalify exact hashes afterward. Do not restore old Samsung binaries over a newer firmware installation.
+A power cycle clears temporary overlays but does not necessarily undo disabled apps, removed shortcuts, account changes, or anything else a custom root command changed. Firmware updates may replace renderer inputs or reset app state; remove overlays first and requalify exact hashes afterward. Do not restore old Samsung binaries over a newer firmware installation.

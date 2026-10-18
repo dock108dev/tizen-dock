@@ -26,7 +26,7 @@ The tools are intended to run from this editable source workspace. Keep `config.
 
 On the tested TV, open **Apps**, enter **12345** using the remote's number controls to open Developer Mode, enable it, and enter the **computer's** LAN address as the allowed host. Restart the TV. Depending on the remote, a full numeric IR remote or the on-screen number pad may be required. Other model menus can differ.
 
-If the connection still fails after a normal restart, the tested TV needed a full unplug/reconnect before Developer Mode became reachable. Use the TV's on-screen software information to record its complete model and version before proceeding.
+If the connection still fails after a normal restart, the tested TV needed a full unplug/reconnect before Developer Mode became reachable. Use the TV's on-screen software information to record its complete model and version before proceeding. Standby, a Home-app restart, and a full system boot are different; see [restart behavior](restart-and-persistence.md). Keep the computer's address as the normal Developer Mode host. Loopback-host persistence testing is incomplete.
 
 ## Prepare temporary root tooling
 
@@ -49,7 +49,7 @@ There is no default SSH username/password or password-based root login in this w
 tizen-dock root --command 'id'
 ```
 
-On the development device, the route returned UID/GID 0 and the expected effective capabilities. The adapter uses a private mount namespace for its temporary launcher setup and checks restoration of its sensitive temporary mounts. It does not install an always-on listener or a TV-side startup service.
+On the development device, the route returned UID/GID 0 and the expected effective capabilities. The adapter uses a private mount namespace for its temporary launcher setup and checks restoration of its sensitive temporary mounts. The public CLI does not install an always-on listener or a TV-side startup service. A separately installed experimental helper is described in [restart and persistence](restart-and-persistence.md); its signing setup is not part of this quickstart.
 
 The TU7000's `/usr/bin/dotnet` is a Samsung launcher that rejects `--list-runtimes`. The local adaptation only accepts its observed 3.1.3 runtime symlink and existing runtime library. If those checks differ, stop; the adaptation is not permission to bypass another compatibility error.
 

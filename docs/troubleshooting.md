@@ -12,6 +12,10 @@
 | Home does not recover | Use `restore-menu`, inspect local records, then fully power-cycle if necessary; persistent app/cache changes still need their own restoration |
 | Blank On Now area | The early empty-feed edit was insufficient; current source also removes container and renderer focus/loading paths |
 | Icons remain square | Verify the loaded renderer hash, restart Home, and check the ContentItemView mask resource. An older ImageTitle-only patch does not affect WebAppLauncher shortcuts |
+| Square white corners behind rounded apps | The optional v4 patcher isolates the native app backplate and adds its own rounded outline; verify both renderer and assets |
+| Logos show only middle letters | Replacement artwork and mask must both be 512 × 512 for the optional artwork map; a smaller mask crops the source |
+| Dock disappears after restart | Default mounts are temporary. The experimental helper is separate and cold-power-loss recovery remains incompletely tested; see [restart and persistence](restart-and-persistence.md) |
+| Startup takes longer than 10 seconds | The observed 10 seconds began at service start, not TV power-on; startup scheduling and network readiness add time |
 | Huge panel / bad centering | Current v3 changes the background container's anchor and dimensions. Confirm the renderer revision before adjusting values; layout units are not pixels |
 | TV Plus gone but channel audio remains | A separate native channel player can continue running. Disabling the app is not proof of stopped playback; this remains unresolved |
 | App is disabled but tile remains | Package state and Home cache are separate. Prepare a backed-up cache edit using the exact component ID |

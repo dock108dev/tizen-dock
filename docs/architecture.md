@@ -8,7 +8,7 @@
 4. UI overlays must be bound through `nsenter -t 1 -m`, because a mount visible only inside the temporary root namespace does not change the running system menu.
 5. Home restarts through SDK `app_launcher`, not through the temporary root context. The latter failed on the development TV because its namespace and security context differed.
 
-This project does not expose a password-based SSH login and does not add a background root controller.
+The public CLI does not expose a password-based SSH login or install a background root controller.
 
 ## Menu components
 
@@ -21,15 +21,15 @@ This project does not expose a password-based SSH login and does not add a backg
 
 Both `.dll` and `.ni.dll` paths are mounted to the modified managed assembly so the runtime does not keep selecting the old native image. The development TV accepted managed fallback/JIT loading. Source files on the system partition are preserved.
 
-## Patch lineage
+## Renderer construction
 
-`patchers/layout` and `patchers/terra` make isolated PE method-body edits with metadata tokens taken from the actual input. `dock-v1` establishes the initial feed-free renderer and shorter transitions. `dock-v2` uses Cecil with the TV's private reference assemblies to rewrite geometry and image styling. `dock-v3` corrects the actual app-shortcut path and centers the backdrop itself.
+`patchers/layout` and `patchers/terra` rewrite selected PE method bodies using metadata from the supplied input. The default build chains `dock-v1`, `dock-v2`, and `dock-v3` to remove feed paths, set geometry, and center the backdrop. These projects are build dependencies, not separate supported theme choices.
 
-The early mask targeted `ImageTitleLauncherView`, but WebAppLauncher shortcuts fall back to `ContentItemView` through FluxLauncherAppsBridge. That explains why the earlier live trial still had square app icons. The current mask is applied to `ContentItemView.mainImage`, backed by ImageBox's AlphaMaskUrl property. The mask is generated from source; original app art is not redistributed.
+WebAppLauncher shortcuts use `ContentItemView` through FluxLauncherAppsBridge. Its `mainImage` needs the alpha mask; changing only `ImageTitleLauncherView` does not round these app shortcuts. The dock uses bottom-center parent and pivot anchors, a bounded background, and a clamped inner row while retaining Samsung's existing app-launch and remote infrastructure.
 
-The panel uses bottom-center parent and pivot anchors, a fixed background width, and a clamped inner row. It retains the original app-launching and remote infrastructure. It is an Apple TV-inspired visual direction, not Apple's interface or software.
+The optional v4 patcher gives app shortcuts private native backplates and hides their rectangular focus surface. A separate rounded outline supplies focus feedback, with gentler zoom. An optional exact-title artwork map replaces the image sources. Its mask dimensions match the 512-pixel replacement art to avoid cropping. Other Samsung controls retain shared backplate styling.
 
-The source projects keep the historical transformations explicit so the current build can be reproduced from original inputs. Intermediate UI revisions are not offered as validated user-facing themes. A future cleanup can consolidate them after the current live behavior is confirmed.
+See [customization](customization.md) for default versus optional build behavior, and [restart and persistence](restart-and-persistence.md) for the separately installed experimental helper. The public CLI does not install a TV startup service.
 
 ## Independent state
 
@@ -41,4 +41,4 @@ The observed app-ID lists and full databases remain private. The public project 
 
 The upstream source revision is pinned in `scripts/bootstrap.py`. Its runtime enumeration normally calls `dotnet --list-runtimes`. Samsung's TU7000 launcher rejects that option. The local adaptation catches only that specific error, verifies the exact observed runtime symlink and `libcoreclr.so`, then identifies the 3.1 runtime for payload selection. Other errors remain failures.
 
-This adaptation and the payload target framework were exercised during the original device session. The new public wrapper is separately marked as locally checked until its complete backup/apply/restore loop is exercised on hardware.
+The runtime adaptation and payloads have run on the development TV. The public wrapper's complete backup/apply/restore loop remains incompletely tested on hardware.
