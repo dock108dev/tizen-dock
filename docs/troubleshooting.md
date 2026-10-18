@@ -21,7 +21,7 @@
 | App is disabled but tile remains | Package state and Home cache are separate. Prepare a backed-up cache edit using the exact component ID |
 | Cache helper reports stale input | The TV changed those files after the snapshot. Take a new backup and rebuild the edit; do not bypass the hash check |
 | Build fails resolving TV types | Collect all five reference assemblies from the same device and pass the private originals directory |
-| Build fails restoring .NET references | Confirm SDK 9 and network access for package restore. Do not bundle Samsung DLLs to work around missing device inputs |
+| Build fails restoring .NET references | Confirm SDK 10.0.402 from `global.json`, select its directory on PATH, and confirm network access for package restore. Do not bundle Samsung DLLs to work around missing device inputs |
 | Backup integrity fails | Preserve the remote snapshot and private logs; do not apply changes using that incomplete backup |
 
 If reporting a problem, include the exact model, on-screen firmware, project revision, failing command name, and a redacted error excerpt. Do not attach databases, private configuration, account screens, raw logs, Samsung DLLs, keys, or a full snapshot.

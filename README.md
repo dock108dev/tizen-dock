@@ -19,7 +19,7 @@ Movie Hub/channel audio prevention, continuous playback across every app, full r
 
 ## Requirements and quickstart
 
-Use the [compatible device inputs](docs/compatibility.md), a trusted local network, Python 3.12+, .NET SDK 9, OpenSSL, and Samsung SDB from [Tizen Studio](https://developer.tizen.org/development/tizen-studio/download). macOS is the development host; other hosts are unqualified.
+Use the [compatible device inputs](docs/compatibility.md), a trusted local network, Python 3.12+, .NET SDK 10.0.402, OpenSSL, and Samsung SDB from [Tizen Studio](https://developer.tizen.org/development/tizen-studio/download). macOS is the development host; other hosts are unqualified.
 
 From the extracted project directory:
 
@@ -43,9 +43,12 @@ Before changing the TV, create a [private backup](docs/backups-and-recovery.md),
 
 ## Local checks
 
+See the [CI contract](docs/CI.md) for locked tool installation, the full check map, reporting and local commands. The required offline suites are:
+
 ```sh
-python -m compileall -q src scripts patchers/dock-v4
-python -m unittest discover -s tests -v
+python ci/run.py python
+python ci/run.py patchers
+python ci/run.py security
 ```
 
 See [development](docs/development.md) for patcher builds, [architecture](docs/architecture.md) for implementation details, and [troubleshooting](docs/troubleshooting.md) for recovery. Source checks do not qualify device behavior.

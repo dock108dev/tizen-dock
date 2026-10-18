@@ -4,10 +4,20 @@
 
 - A TV matching the [documented original assembly hashes](compatibility.md), and permission to modify it.
 - A computer and TV on the same reachable local network. Wired Ethernet is also usable; Wi-Fi is not a special protocol requirement.
-- Python 3.12 or newer, the .NET 9 SDK, OpenSSL, and Samsung's SDB executable from [Tizen Studio](https://developer.tizen.org/development/tizen-studio/download).
+- Python 3.12 or newer, the .NET 10.0.402 SDK (pinned by `global.json`), OpenSSL, and Samsung's SDB executable from [Tizen Studio](https://developer.tizen.org/development/tizen-studio/download).
 - The host firewall must allow the TV to connect back to the computer for the temporary authenticated command session. Guest-network isolation, a VPN, or the wrong interface can prevent this.
 
 macOS was the development host. Other hosts have not been qualified for this project's complete workflow. Commands below use a POSIX shell; on Windows, adapt environment paths and activation commands. Do not install an obsolete .NET 3.1 host runtime: the build targets the runtime already present on the TV.
+
+The host patchers target .NET 10 LTS. Download the pinned SDK from [Microsoft](https://dotnet.microsoft.com/en-us/download/dotnet/10.0). If installed in `$HOME/.dotnet`, select it in the current shell before building:
+
+```sh
+export DOTNET_ROOT="$HOME/.dotnet"
+export PATH="$DOTNET_ROOT:$PATH"
+dotnet --version
+```
+
+The expected version is `10.0.402`. The TV payloads retain their `netcoreapp3.1` target; this host upgrade does not change the TV runtime. See [CI and maintenance](CI.md) for the migration's source-only validation limits.
 
 Download the project source archive, extract it, and open a terminal in the project directory.
 

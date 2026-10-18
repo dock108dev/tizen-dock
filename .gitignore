@@ -25,3 +25,12 @@ __pycache__/
 *.wgt
 *.tpk
 device-profile.xml
+
+# Disposable offline CI reports and packaging outputs.
+.ci-results/
+.pytest_cache/
+.ruff_cache/
+.coverage*
+htmlcov/
+build/
+dist/

@@ -2,17 +2,17 @@
 
 ## Offline checks
 
-From the project root with the Python environment active:
+Follow the [CI contract](CI.md) to install hash-locked Python tools, pinned scanners and the SDK selected by `global.json`. Run all three suites from a Git checkout:
 
 ```sh
-python -m compileall -q src scripts patchers/dock-v4
-python -m unittest discover -s tests -v
-for project in patchers/*/Patcher.csproj; do
-  dotnet build "$project" --nologo -v q
-done
+python ci/run.py python
+python ci/run.py patchers
+python ci/run.py security
 ```
 
-Tests use synthetic files and fake adapters. They cover backup integrity, path and app-ID guards, interrupted app-state recording, cache editing, and refusal of unrecognized inputs. They must not connect to a TV in automation. Patcher builds require SDK 9 and package restore; building source alone requires no Samsung binaries or device connection. These are also the checks used by the source workflow in `.github/workflows/checks.yml`.
+Tests use synthetic files, temporary state and fake adapters. The Python suite includes formatting/lint, behavioral tests, coverage and a clean source-distribution install. The patcher suite builds all six host projects with SDK 10.0.402, checks a synthetic transformation and input refusals, and compiles the pinned legacy payload source in a disposable directory. Security checks validate Actions/shell, secrets, dependencies and Python static findings. Reports stay under ignored `.ci-results/`; see the contract for artifact policy and evidence limits. No Samsung binaries, TV connection or account is needed. Package downloads and vulnerability queries require network access.
+
+For a quick standard-library-only guard check, `python -m unittest discover -s tests -p test_guards.py -v` still runs the original `unittest` suite; it is a subset, not the full CI contract. New pytest suites require the locked tools.
 
 An overlay build additionally requires private original assemblies matching the profile. Run `scripts/build-overlays.py` with a new output directory. It produces the default v3 renderer. The optional [v4 artwork patcher](customization.md#optional-artwork-and-focus-styling) has its own input gate and manual asset workflow. Keep generated files under `.local/`; do not publish Samsung-derived inputs or outputs.
 

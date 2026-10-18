@@ -1,0 +1,15 @@
+include README.md CONTRIBUTING.md SECURITY.md LICENSE NOTICE config.example.json global.json Directory.Build.props
+recursive-include docs *.md
+recursive-include profiles *.json
+recursive-include examples *.json
+recursive-include scripts *.py
+recursive-include patchers *.cs *.csproj *.py packages.lock.json
+recursive-include ci *.py *.txt *.in
+recursive-include tests *.py *.cs *.csproj packages.lock.json
+recursive-exclude * bin/* obj/* __pycache__/*
+global-exclude *.pyc *.dll *.pdb
+
+prune patchers/*/bin
+prune patchers/*/obj
+prune tests/patcher-fixture/bin
+prune tests/patcher-fixture/obj
