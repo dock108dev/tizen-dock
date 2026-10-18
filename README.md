@@ -2,6 +2,8 @@
 
 Experimental, reversible **Tizen OS customizations for Samsung TVs**: a compact menu over your current picture, fewer recommendation panels, and explicit control over unwanted apps.
 
+**Keep expectations low:** this was heavily vibe coded and spun up in about an hour. The goal is a simple, good-looking menu. Expect rough edges, limited testing, and some unfinished behavior.
+
 Tizen Dock adapts Samsung's existing Home renderer rather than installing a replacement operating system. It includes source patchers, local tools, exact-input compatibility checks, backup and restore workflows, and the findings behind the current implementation.
 
 **Current status:** tested during development on one **Samsung UN65TU7000FXZA**, with firmware reported as **2301**, Tizen 6.0 and ARMv7 observed. Temporary root access, app disabling, shortcut cleanup, and overlay loading worked on that device. The latest centered dock revision still needs visual and navigation confirmation. This is a research toolkit, not a finished theme installer.
