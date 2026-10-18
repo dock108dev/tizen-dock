@@ -1,0 +1,7 @@
+# Temporary reachability exception; remove when a fixed node-forge is published.
+# Applies only to the root package-lock.json, not Python or NuGet lockfiles.
+# https://github.com/digitalbazaar/forge/pull/1152
+[[IgnoredVulns]]
+id = "GHSA-86w9-cpqp-85rv"
+ignoreUntil = 2026-11-18
+reason = "node-forge 1.4.0 has no published fix. The local startup signer only reads owner-supplied PKCS#12 files and serializes keys/certificates; tizen Signature signs with Node crypto. No forge RSA signature verification is used. Startup CI verifies output with Node crypto and checks that signing works with forge verification disabled. Reassess on expiry or any new forge usage."

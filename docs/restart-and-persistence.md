@@ -11,6 +11,21 @@ System binaries remain intact. Standby may preserve the mounts; a full reboot
 clears them until the installed helper restores them. App flags and shortcut
 cache changes remain independent.
 
+## Recorded installation and verification
+
+The 2026-10-18 basement installation used the v4 renderer with private 512-pixel
+artwork and startup revision `dock-v4-startup-1`. The recorded status was
+`active / already-present`, and the owner reported the v4 dock visible. These
+observations establish operation in that boot only. The last observed boot ID
+was unchanged; the owner deferred the restart and cold-power-loss test.
+
+The repository now contains hardened startup revision `dock-v4-startup-2`.
+The installation record says it has not been signed or deployed. Source checks
+therefore do not establish that the installed helper has the newer access
+controls. Prepare a fresh device-authorized package when maintenance resumes,
+then use the verification procedure below. No device was contacted to refresh
+this record during the documentation pass.
+
 ## Prepare one private package per TV
 
 Use that TV's selected configuration, verified pristine backup, v4 build, pinned

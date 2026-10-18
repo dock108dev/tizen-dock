@@ -140,6 +140,24 @@ test('synthetic package signs actual widget source and verifies signatures', asy
             digest
         );
 });
+test('startup signing does not call forge RSA verification (GHSA-86w9-cpqp-85rv)', (t) => {
+    const f = fixture(t);
+    const preload = path.join(f.base, 'forbid-forge-verification.cjs');
+    fs.writeFileSync(preload, `
+        const forge = require(${JSON.stringify(require.resolve('node-forge'))});
+        const original = forge.pki.rsa.setPublicKey;
+        forge.pki.setRsaPublicKey = forge.pki.rsa.setPublicKey = function (...args) {
+            const key = original(...args);
+            key.verify = () => { throw Error('Vulnerable forge RSA verification reached'); };
+            return key;
+        };
+    `);
+    const result = spawnSync(process.execPath,
+        ['--require', preload, path.join(root, 'scripts/sign-startup.cjs'), ...f.args],
+        { encoding: 'utf8', timeout: 30000, env: { ...process.env, NODE_OPTIONS: '' } });
+    assert.equal(result.status, 0, result.stderr);
+    assert(fs.existsSync(path.join(f.output, 'startup.wgt')));
+});
 test('certificate for a different TV is rejected without output', (t) => {
     const f = fixture(t);
     fs.writeFileSync(f.id, 'another-device');

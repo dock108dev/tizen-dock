@@ -82,6 +82,20 @@ remain visible for review. Deliberate subprocess use, fixed download URLs and
 validated app-ID SQL are not silently suppressed. See [security](../SECURITY.md)
 for the known signing-tool dependency issue.
 
+## Recorded local verification
+
+Retained local reports from 2026-10-18 record 88 passing Python tests with no
+skips, six passing startup test groups, and successful patcher builds and
+synthetic input checks. The security report records passing source/history
+secret scans and no HIGH Python static findings, but fails the dependency gate
+for `GHSA-86w9-cpqp-85rv`; see [security](../SECURITY.md).
+
+Those reports were produced before the current documentation revision and
+include different public-source digests for some suites. They are individual
+local results, not a passing aggregate for the current checkout or a hosted
+GitHub run. Device startup and cold-boot behavior require separate verification
+under [restart and persistence](restart-and-persistence.md).
+
 ## Maintenance and limits
 
 Dependabot covers Actions, pip, npm and NuGet. Update requirements and regenerate
