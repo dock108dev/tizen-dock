@@ -71,3 +71,7 @@ tizen-dock restore-menu
 ```
 
 This attempts to unmount the four component overlays, then restarts Home. It does not restore app disable flags or Home cache files. Verify the SDK-visible hashes against the profile afterward. Alternatively, a full power cycle clears the temporary mounts. See [recovery](backups-and-recovery.md) for persistent changes and retry staging cleanup.
+
+## Optional visual trial
+
+[The v4 trial](visual-trials.md) isolates app focus styling and supports owner-local higher-resolution artwork. It is separate from the default v3 pipeline and has its own exact-input gate and pending device review.
