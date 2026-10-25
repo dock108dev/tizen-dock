@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       compatibility:
-        description: 'Also check Python 3.13/3.14 and Node 22 on Linux'
+        description: 'Also check Node 22 on Linux'
         type: boolean
         default: false
 permissions:
@@ -22,11 +22,11 @@ env:
   PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
 jobs:
   python:
-    name: Python (${{ matrix.os }}, ${{ matrix.python }})
+    name: Python (${{ matrix.os }})
     strategy:
       fail-fast: false
       matrix:
-        include: ${{ fromJSON((github.event_name == 'schedule' || inputs.compatibility == true) && '[{"os":"ubuntu-24.04","python":"3.12"},{"os":"macos-14","python":"3.12"},{"os":"ubuntu-24.04","python":"3.13"},{"os":"ubuntu-24.04","python":"3.14"}]' || '[{"os":"ubuntu-24.04","python":"3.12"},{"os":"macos-14","python":"3.12"}]') }}
+        os: [ubuntu-24.04, macos-14]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     steps:
@@ -35,7 +35,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: ${{ matrix.python }}
+          python-version: '3.14'
       - name: Install locked CI tools and source package
         run: |
           python -m pip install --require-hashes -r ci/requirements.txt
@@ -46,7 +46,7 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: python-${{ runner.os }}-${{ matrix.python }}-${{ github.run_id }}-${{ github.run_attempt }}
+          name: python-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: .ci-results/python/
           if-no-files-found: error
           retention-days: 14
@@ -64,7 +64,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: '3.12'
+          python-version: '3.14'
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           global-json-file: global.json
@@ -92,7 +92,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: '3.12'
+          python-version: '3.14'
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: ${{ matrix.node }}
@@ -120,7 +120,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: '3.12'
+          python-version: '3.14'
       - name: Install locked scanners
         run: |
           python -m pip install --require-hashes -r ci/requirements.txt
@@ -148,7 +148,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: '3.12'
+          python-version: '3.14'
       - name: Require every job to succeed
         env:
           NEEDS_JSON: ${{ toJSON(needs) }}
@@ -169,7 +169,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: '3.12'
+          python-version: '3.14'
       - name: Sample completed runs (30 days, at most 30)
         env:
           GH_TOKEN: ${{ github.token }}

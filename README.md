@@ -22,7 +22,7 @@ Movie Hub/channel audio prevention, continuous playback across every app, full r
 
 ## Requirements and quickstart
 
-Use the [compatible device inputs](docs/compatibility.md), a trusted local network, Python 3.12+, .NET SDK 10.0.402, OpenSSL, and Samsung SDB from [Tizen Studio](https://developer.tizen.org/development/tizen-studio/download). Node 22 or 24 is required for startup packaging. macOS is the development host; other hosts are unqualified.
+Use the [compatible device inputs](docs/compatibility.md), a trusted local network, Python 3.14+, .NET SDK 10.0.402, OpenSSL, and Samsung SDB from [Tizen Studio](https://developer.tizen.org/development/tizen-studio/download). Node 22 or 24 is required for startup packaging. macOS is the development host; other hosts are unqualified.
 
 From the extracted project directory:
 

@@ -6,7 +6,7 @@ cancelled, missing or unexpectedly skipped checks block the aggregate gate.
 
 ## Run locally
 
-Use Python 3.12–3.14, Node 22 or 24, and the .NET SDK pinned by `global.json`.
+Use Python 3.14, Node 22 or 24, and the .NET SDK pinned by `global.json`.
 Install the SDK as described in [setup](setup.md), then run from a Git checkout:
 
 ```sh
@@ -43,9 +43,9 @@ available with `python -m unittest discover -s tests -p test_guards.py -v`.
 
 | Event | Checks |
 | --- | --- |
-| Pull request and push to `main` | Python 3.12, .NET patchers and Node 24 on Ubuntu 24.04/macOS 14; security on Linux |
-| Monday at 07:23 UTC | The same checks plus Python 3.13/3.14, Node 22 on Linux and advisory CI-health reporting |
-| Manual dispatch | Required suites; the boolean `compatibility` input enables the broader runtime matrix |
+| Pull request and push to `main` | Python 3.14, .NET patchers and Node 24 on Ubuntu 24.04/macOS 14; security on Linux |
+| Monday at 07:23 UTC | The same checks plus Node 22 on Linux and advisory CI-health reporting |
+| Manual dispatch | Required suites; the boolean `compatibility` input adds Node 22 on Linux |
 
 Schedules run on the default branch and can be delayed. `merge_group` is not
 configured; add that trigger before using a merge queue. There is no release or
@@ -99,7 +99,7 @@ under [restart and persistence](restart-and-persistence.md).
 ## Maintenance and limits
 
 Dependabot covers Actions, pip, npm and NuGet. Update requirements and regenerate
-their hash lock with `uv pip compile ci/requirements.in --generate-hashes --output-file ci/requirements.txt`.
+their hash lock with `uv pip compile ci/requirements.in --python-version 3.14 --generate-hashes --output-file ci/requirements.txt`.
 Use `npm install --package-lock-only --ignore-scripts` for reviewed Node updates,
 then rerun startup and security checks. Keep action SHAs, scanner checksums and
 `global.json` aligned with reviewed tool versions.

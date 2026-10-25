@@ -4,7 +4,7 @@
 
 - A TV matching the [documented original assembly hashes](compatibility.md), and permission to modify it.
 - A computer and TV on the same reachable local network. Wired Ethernet is also usable; Wi-Fi is not a special protocol requirement.
-- Python 3.12 or newer, the .NET 10.0.402 SDK (pinned by `global.json`), OpenSSL, and Samsung's SDB executable from [Tizen Studio](https://developer.tizen.org/development/tizen-studio/download).
+- Python 3.14 or newer, the .NET 10.0.402 SDK (pinned by `global.json`), OpenSSL, and Samsung's SDB executable from [Tizen Studio](https://developer.tizen.org/development/tizen-studio/download).
 - The host firewall must allow the TV to connect back to the computer for the temporary authenticated command session. Guest-network isolation, a VPN, or the wrong interface can prevent this.
 
 Use macOS for the documented device workflow. Linux supports offline CI checks; its complete device workflow has not been qualified. Windows is unsupported. Commands below use a POSIX shell. Do not install an obsolete .NET 3.1 host runtime: the build targets the runtime already present on the TV.
