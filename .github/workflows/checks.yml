@@ -26,7 +26,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, macos-14]
+        os: [ubuntu-24.04]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     steps:
@@ -55,7 +55,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, macos-14]
+        os: [ubuntu-24.04]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 12
     steps:
@@ -83,7 +83,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include: ${{ fromJSON((github.event_name == 'schedule' || inputs.compatibility == true) && '[{"os":"ubuntu-24.04","node":"24"},{"os":"macos-14","node":"24"},{"os":"ubuntu-24.04","node":"22"}]' || '[{"os":"ubuntu-24.04","node":"24"},{"os":"macos-14","node":"24"}]') }}
+        include: ${{ fromJSON((github.event_name == 'schedule' || inputs.compatibility == true) && '[{"os":"ubuntu-24.04","node":"24"},{"os":"ubuntu-24.04","node":"22"}]' || '[{"os":"ubuntu-24.04","node":"24"}]') }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     steps:

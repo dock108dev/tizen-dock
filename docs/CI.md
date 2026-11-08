@@ -41,9 +41,11 @@ available with `python -m unittest discover -s tests -p test_guards.py -v`.
 
 ## Workflow events and platforms
 
+GitHub Actions uses Ubuntu runners only; no CI jobs use macOS runners.
+
 | Event | Checks |
 | --- | --- |
-| Pull request and push to `main` | Python 3.14, .NET patchers and Node 24 on Ubuntu 24.04/macOS 14; security on Linux |
+| Pull request and push to `main` | Python 3.14, .NET patchers, Node 24 and security on Ubuntu 24.04 |
 | Monday at 07:23 UTC | The same checks plus Node 22 on Linux and advisory CI-health reporting |
 | Manual dispatch | Required suites; the boolean `compatibility` input adds Node 22 on Linux |
 
