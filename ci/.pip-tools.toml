@@ -1,0 +1,6 @@
+# Dependabot drops pip-compile's unsafe-package footer when updating the uv lock.
+# Keep setuptools in the main lock body for CI's non-isolated builds.
+[pip-tools]
+unsafe-package = ["distribute", "pip"]
+# Match uv's package names so CI can inventory every installed dependency.
+strip-extras = true
