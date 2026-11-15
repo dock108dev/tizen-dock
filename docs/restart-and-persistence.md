@@ -45,7 +45,7 @@ file to its owner.
 
 Install the repository's locked signing tools with
 `npm ci --ignore-scripts --no-audit --no-fund`. Preparation does not download
-certificates. The known dependency issue is described in [security](../SECURITY.md).
+certificates. See [security](../SECURITY.md) for details on the signing dependency.
 The commands below use `config.json`; add `--config PATH` consistently when using
 another TV configuration.
 

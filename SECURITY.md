@@ -48,21 +48,14 @@ failure and cold-power-loss restoration are not guaranteed on every device.
 
 ## Signing dependency security fix
 
-There is no published npm fix for
-[GHSA-86w9-cpqp-85rv](https://github.com/advisories/GHSA-86w9-cpqp-85rv).
-The signing tools temporarily pin node-forge to commit
-`ceba34402e329f0365134f23fe19898756527d65` from
-[upstream PR 1152](https://github.com/digitalbazaar/forge/pull/1152).
-This is an unmerged proposed fix, not an official release. The source change
-rejects unconsumed children in the nested DigestAlgorithm sequence. Relative to
-1.4.0, only rsa.js, its upstream tests, package version and changelog change.
+The signing tools use the published [node-forge 1.4.3 release](https://github.com/digitalbazaar/forge/releases/tag/v1.4.3).
+It includes the [RSA verification fix](https://github.com/digitalbazaar/forge/security/advisories/GHSA-2g46-22mc-6gwp)
+that prompted the temporary commit pin.
 
-The lockfile records the source archive integrity; the npm override forces tizen
-onto the same patched dependency. Startup CI checks both dependency paths resolve
-to that copy and exercises valid and malformed RSA encodings, including extra
-nested elements with and without NULL parameters. Package signatures are also
-verified independently with Node crypto. Replace the commit pin and override with
-a reviewed official release when available. No vulnerability suppression is used.
+The lockfile records the npm package integrity. Startup CI checks that tizen
+and the signing tools resolve the same copy of node-forge and exercises valid
+and malformed RSA encodings. Package signatures are also verified independently
+with Node crypto.
 
 Report vulnerabilities through the repository's private security-reporting
 facility when available. Do not publish access details, credentials or raw device

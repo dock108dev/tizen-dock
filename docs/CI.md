@@ -82,7 +82,7 @@ reported separately; rerun success alone is not evidence of a flaky test.
 Dependency findings and HIGH Python static findings block. Lower static severities
 remain visible for review. Deliberate subprocess use, fixed download URLs and
 validated app-ID SQL are not silently suppressed. See [security](../SECURITY.md)
-for the known signing-tool dependency issue.
+for details on the signing dependency and its verification.
 
 ## Recorded local verification
 
